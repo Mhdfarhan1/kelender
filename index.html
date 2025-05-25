@@ -388,7 +388,8 @@
 
 
         // Data events simpan di localStorage
-        let events = JSON.parse(localStorage.getItem('events') || []);
+        const events = JSON.parse(localStorage.getItem('events') || '[]');
+
 
         // State saat ini
         let currentDate = new Date();
@@ -623,7 +624,7 @@
                 modalTitle.innerHTML = `<i class="fas fa-edit mr-2"></i> Edit Kegiatan`;
                 eventTitle.value = event.title;
                 eventDate.value = event.date;
-                
+
                 eventTime.value = event.time || '';   // Set waktu
                 eventDesc.value = event.desc || '';
                 editIndexInput.value = events.indexOf(event);
