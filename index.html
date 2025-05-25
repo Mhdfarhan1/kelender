@@ -386,9 +386,20 @@
         const eventTime = document.getElementById('eventTime');
         const dayNameDisplay = document.getElementById('dayNameDisplay');
 
+        function getEvents() {
+            try {
+                const data = localStorage.getItem('events');
+                if (!data) return [];
+                return JSON.parse(data);
+            } catch (error) {
+                console.error('Gagal parsing data events dari localStorage:', error);
+                localStorage.removeItem('events');
+                return [];
+            }
+        }
 
-        // Data events simpan di localStorage
-        const events = JSON.parse(localStorage.getItem('events') || '[]');
+        const events = getEvents();
+
 
 
         // State saat ini
