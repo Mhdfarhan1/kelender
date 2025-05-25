@@ -268,6 +268,8 @@
             <!-- Hari dan tanggal di-generate JS -->
         </section>
 
+
+
     </main>
 
     <!-- Modal -->
@@ -412,6 +414,7 @@
         // Drag & drop variables
         let draggedEvent = null;
         let dragSourceIndex = null;
+        let lastAddedEvent = null;
 
         // Initialize theme
         function initTheme() {
@@ -683,28 +686,31 @@
             }
         }
 
+
         eventForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const title = eventTitle.value.trim();
             const dateVal = eventDate.value;
-            const timeVal = eventTime.value; // Ambil waktu
+            const timeVal = eventTime.value;
+            const desc = eventDesc.value.trim();
+            const idx = editIndexInput.value;
 
             if (!title || !dateVal) {
                 showToast('Judul dan tanggal kegiatan wajib diisi!', 'error');
                 return;
             }
-            const desc = eventDesc.value.trim();
-            const idx = editIndexInput.value;
 
             if (idx !== '') {
-                events[idx] = { title, date: dateVal, time: timeVal, desc };  // Simpan waktu
+                events[idx] = { title, date: dateVal, time: timeVal, desc };
+                lastAddedEvent = events[idx];  // update lastAddedEvent ketika edit
                 showToast('Kegiatan berhasil diperbarui!');
             } else {
-                events.push({ title, date: dateVal, time: timeVal, desc });   // Simpan waktu
+                const newEvent = { title, date: dateVal, time: timeVal, desc };
+                events.push(newEvent);
+                lastAddedEvent = newEvent;  // update lastAddedEvent ketika tambah baru
                 showToast('Kegiatan berhasil ditambahkan!');
             }
 
-            // Sort events by date & time
             events.sort((a, b) => {
                 const dateA = new Date(`${a.date}T${a.time || '00:00'}`);
                 const dateB = new Date(`${b.date}T${b.time || '00:00'}`);
@@ -833,46 +839,32 @@
 
         // WhatsApp Reminder
         whatsappBtn.addEventListener('click', () => {
-            // Filter event berdasarkan bulan dan tahun aktif
-            const monthEvents = events.filter(e => {
-                const eventDate = new Date(e.date);
-                return eventDate.getFullYear() === currentYear && eventDate.getMonth() === currentMonth;
-            });
-
-            if (monthEvents.length === 0) {
-                showToast('Belum ada kegiatan untuk bulan ini.', 'error');
+            if (!lastAddedEvent) {
+                showToast('Belum ada kegiatan terbaru yang ditambahkan.', 'error');
                 return;
             }
 
-            // Fungsi untuk mendapatkan nama hari dan format tanggal lengkap dalam bahasa Indonesia
             function formatDateLong(dateStr) {
                 const date = new Date(dateStr);
                 const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
                 return date.toLocaleDateString('id-ID', options);
             }
 
-            // Membuat pesan reminder WhatsApp
-            let message = `📅 *Jadwal Kegiatan PIK-R Request - ${monthYear.textContent}* 📅\n\n`;
+            let message = `📅 *Pengumuman Kegiatan Terbaru PIK-R Request* 📅\n\n`;
 
-            monthEvents.forEach((ev) => {
-                const formattedDate = formatDateLong(ev.date);
-                message += `🗓 *${formattedDate}*\n`;
+            const ev = lastAddedEvent;
+            const formattedDate = formatDateLong(ev.date);
+            message += `🗓 *${formattedDate}*\n`;
 
-                if (ev.time && ev.time.trim() !== '') {
-                    message += `⏰ ${ev.time}\n`;
-                }
+            if (ev.time && ev.time.trim() !== '') {
+                message += `⏰ ${ev.time}\n`;
+            }
 
-                message += `📌 ${ev.title}\n`;
+            message += `📌 ${ev.title}\n`;
 
-                if (ev.desc && ev.desc.trim() !== '') {
-                    message += `ℹ️ ${ev.desc}\n`;
-                }
-
-                message += `\n`;
-            });
-
-
-
+            if (ev.desc && ev.desc.trim() !== '') {
+                message += `ℹ️ ${ev.desc}\n`;
+            }
             message += `_*Jangan lupa persiapkan segala kebutuhan untuk kegiatan di atas ya!*_`;
 
             // URL grup WhatsApp yang kamu punya
